@@ -34,6 +34,7 @@ exports.initRecordButton = function(ctx) {
     var mic = new Microphone(micOptions);
 
     return function(evt) {
+
       // Prevent default anchor behavior
       evt.preventDefault();
 
@@ -65,12 +66,15 @@ exports.initRecordButton = function(ctx) {
         });
       } else {
         console.log('Stopping microphone, sending stop action message');
+        reply();
+        console.log("HELLO123123")
         recordButton.removeAttr('style');
         recordButton.find('img').attr('src', 'images/microphone.svg');
         $.publish('hardsocketstop');
         mic.stop();
         running = false;
         localStorage.setItem('currentlyDisplaying', 'false');
+
       }
     };
   })());

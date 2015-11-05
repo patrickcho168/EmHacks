@@ -29,8 +29,8 @@ require('./config/express')(app);
 var config = extend({
   version: 'v1',
   url: 'https://stream.watsonplatform.net/speech-to-text/api',
-  username: '<username>',
-  password: '<password>'
+  username: "f9a32220-120c-48d7-a73e-bebfb54feb31",
+  password: "oTm1rMgmdYus"
 }, vcapServices.getCredentials('speech_to_text'));
 
 var authService = watson.authorization(config);
@@ -47,6 +47,27 @@ app.post('/api/token', function(req, res, next) {
     else
       res.send(token);
   });
+});
+
+var textToSpeech = watson.text_to_speech({
+  version: 'v1',
+  username: '1f01389a-efc3-4104-a91e-82fe27120b7b',
+  password: 'vzXGZ1ex8c0m'
+});
+
+app.get('/api/synthesize', function(req, res, next) {
+  console.log(req.query);
+  var transcript = textToSpeech.synthesize(req.query);
+  transcript.on('response', function(response) {
+    if (req.query.download) {
+      response.headers['content-disposition'] = 'attachment; filename=transcript.ogg';
+    }
+  });
+  transcript.on('error', function(error) {
+    next(error);
+  });
+  console.log(res);
+  transcript.pipe(res);
 });
 
 // error-handler settings
