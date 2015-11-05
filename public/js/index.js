@@ -488,6 +488,8 @@
             var json = JSON.stringify(msg, null, 2);
             return baseJSON += json, baseJSON += "\n", "JSON" === $(".nav-tabs .active").text() && ($("#resultsJSON").append(baseJSON), baseJSON = "", console.log("updating json")), baseJSON
         };
+        // var finalText
+        // exports.finalText = finalText;
         var initTextScroll = function() {
                 $("#resultsText").on("scroll", function() {
                     textScrolled = !0
@@ -504,9 +506,14 @@
             if (msg.results && msg.results.length > 0) {
                 var alternatives = msg.results[0].alternatives,
                     text = msg.results[0].alternatives[0].transcript || "";
+                window.finalText = text;
+                console.log("FINAL TEXT IS: " + window.finalText);
+                // console.log(text);
                 if (text = text.replace(/%HESITATION\s/g, ""), text = text.replace(/(.)\1{2,}/g, ""), msg.results[0]["final"] && console.log("-> " + text), text = text.replace(/D_[^\s]+/g, ""), 0 === text.length || /^\s+$/.test(text)) return baseString;
+                console.log(msg.results[0]["final"]);
                 msg.results && msg.results[0] && msg.results[0]["final"] ? (text = text.slice(0, -1), text = text.charAt(0).toUpperCase() + text.substring(1), text = text.trim() + ". ", baseString += text, $("#resultsText").val(baseString), showMetaData(alternatives[0]), alternativePrototype.showAlternatives(alternatives)) : (text = text.charAt(0).toUpperCase() + text.substring(1), $("#resultsText").val(baseString + text))
             }
+            // console.log(baseString)
             return updateScroll(), updateTextScroll(), baseString
         }, $.subscribe("clearscreen", function() {
             var $hypotheses = $(".hypotheses ul");
@@ -782,6 +789,8 @@
 
         var audio = $('.audio').get(0);
         var voice = 'en-US_AllisonVoice';
+        var messageTimeSent = $(".timesent");
+        var chats = $(".chats");
 
         $('.audio').on('error', function (err) {
             $.get('/api/synthesize?text=test').always(function (response) {
@@ -840,6 +849,35 @@
             }
             return false;
         };
+
+        function createChatMessage(msg,user){
+
+            var who = '';
+
+            if(user=='Pat') {
+                who = 'me';
+            }
+            else {
+                who = 'you';
+            }
+
+            var li = $(
+                '<li class=' + who + '>'+
+                    '<div class="image">' +
+                        '<img src=http://shackmanlab.org/wp-content/uploads/2013/07/person-placeholder.jpg />' +
+                        '<b></b>' +
+                        '<i class="timesent" data-time=2015-10-10 10:10:10></i> ' +
+                    '</div>' +
+                    '<p></p>' +
+                '</li>');
+
+            // use the 'text' method to escape malicious user input
+            li.find('p').text(msg);
+            li.find('b').text(user);
+
+            chats.append(li);
+        };
+
         exports.initRecordButton = function(ctx) {
             var recordButton = $("#recordButton");
             recordButton.click(function() {
@@ -852,11 +890,12 @@
                 return function(evt) {
                     evt.preventDefault();
                     var texttosay = "Hello Patrick";
+                    console.log(window.finalText);
                     console.log(texttosay)
                     var currentModel = localStorage.getItem("currentModel"),
                         currentlyDisplaying = localStorage.getItem("currentlyDisplaying");
                     return "sample" == currentlyDisplaying || "fileupload" == currentlyDisplaying ? void showError("Currently another file is playing, please stop the file or wait until it finishes") : (localStorage.setItem("currentlyDisplaying", "record"), 
-                        void(running ? (console.log("Stopping microphonez, sending stop action message"), reply(texttosay), recordButton.removeAttr("style"), recordButton.find("img").attr("src", "images/microphone.svg"), $.publish("hardsocketstop"), mic.stop(), running = !1, localStorage.setItem("currentlyDisplaying", "false")) : ($("#resultsText").val(""), console.log("Not running, handleMicrophone()"), handleMicrophone(token, currentModel, mic, function(err) {
+                        void(running ? (console.log("Stopping microphonez, sending stop action message"), createChatMessage(window.finalText,"Pat"), reply(texttosay), createChatMessage(texttosay,"Line Travlr"), recordButton.removeAttr("style"), recordButton.find("img").attr("src", "images/microphone.svg"), $.publish("hardsocketstop"), mic.stop(), running = !1, localStorage.setItem("currentlyDisplaying", "false")) : ($("#resultsText").val(""), console.log("Not running, handleMicrophone()"), handleMicrophone(token, currentModel, mic, function(err) {
                         if (err) {
                             var msg = "Error: " + err.message;
                             console.log(msg), showError(msg), running = !1, localStorage.setItem("currentlyDisplaying", "false")
@@ -868,7 +907,8 @@
     }, {
         "../Microphone": 1,
         "../handlemicrophone": 4,
-        "./showerror": 19
+        "./showerror": 19,
+        "./displaymetadata": 10,
     }],
     17: [function(require, module, exports) {
         "use strict";
