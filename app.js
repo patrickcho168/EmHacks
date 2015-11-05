@@ -25,7 +25,7 @@ var express      = require('express'),
 // Bootstrap application settings
 require('./config/express')(app);
 
-// For local development, replace username and password
+// -------- For speech to text -----------
 var config = extend({
   version: 'v1',
   url: 'https://stream.watsonplatform.net/speech-to-text/api',
@@ -49,6 +49,7 @@ app.post('/api/token', function(req, res, next) {
   });
 });
 
+// -------- For text to speech -----------
 var textToSpeech = watson.text_to_speech({
   version: 'v1',
   username: '1f01389a-efc3-4104-a91e-82fe27120b7b',

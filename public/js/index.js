@@ -779,6 +779,67 @@
         var Microphone = require("../Microphone"),
             handleMicrophone = require("../handlemicrophone").handleMicrophone,
             showError = require("./showerror").showError;
+
+        var audio = $('.audio').get(0);
+        var voice = 'en-US_AllisonVoice';
+
+        $('.audio').on('error', function (err) {
+            $.get('/api/synthesize?text=test').always(function (response) {
+                showError(response.responseText || 'Error processing the request');
+            });
+        });
+
+        $('.audio').on('loadeddata', function () {
+            $('.result').show();
+            $('.error-row').css('visibility','hidden');
+        });
+
+        var synthesizeRequest = function(options, audio) {
+            var sessionPermissions = 0;
+            var downloadURL = '/api/synthesize' +
+                '?voice=' + options.voice +
+                '&text=' + encodeURIComponent(options.text) +
+                '&X-WDC-PL-OPT-OUT=' +  sessionPermissions;
+            if (options.download) {
+                downloadURL += '&download=true';
+                window.location.href = downloadURL;
+                return true;
+            }
+            audio.pause();
+            try {
+                audio.currentTime = 0;
+            } catch(ex) {
+                // ignore. Firefox just freaks out here for no apparent reason.
+            }
+            audio.src = downloadURL;
+            audio.play();
+            return true;
+        };
+
+        var validText = function(voice, text) {
+            $('.error-row').css('visibility','hidden');
+            $('.errorMsg').text('');
+            $('.latin').hide();
+
+            if ($.trim(text).length === 0) { // empty text
+                showError('Please enter the text you would like to synthesize in the text window.');
+                return false;
+            }
+            return true;
+        }
+
+        var reply = function(text) {
+            console.log(text);
+            if (validText(voice, text)) {
+                var utteranceOptions = {
+                    text: text,
+                    voice: voice,
+                    sessionPermissions: 0
+                };
+                synthesizeRequest(utteranceOptions, audio);
+            }
+            return false;
+        };
         exports.initRecordButton = function(ctx) {
             var recordButton = $("#recordButton");
             recordButton.click(function() {
@@ -789,80 +850,8 @@
                     },
                     mic = new Microphone(micOptions);
                 return function(evt) {
-
-
-
-
-
-                var audio = $('.audio').get(0);
-
-                $('.audio').on('error', function (err) {
-                  $.get('/api/synthesize?text=test').always(function (response) {
-                    showError(response.responseText || 'Error processing the request');
-                  });
-                });
-
-                $('.audio').on('loadeddata', function () {
-                  $('.result').show();
-                  $('.error-row').css('visibility','hidden');
-                });
-
-              function synthesizeRequest(options, audio) {
-                  var sessionPermissions = 0;
-                  var downloadURL = '/api/synthesize' +
-                    '?voice=' + options.voice +
-                    '&text=' + encodeURIComponent(options.text) +
-                    '&X-WDC-PL-OPT-OUT=' +  sessionPermissions;
-
-                  if (options.download) {
-                    downloadURL += '&download=true';
-                    window.location.href = downloadURL;
-                    return true;
-                  }
-                  audio.pause();
-                  try {
-                    audio.currentTime = 0;
-                  } catch(ex) {
-                    // ignore. Firefox just freaks out here for no apparent reason.
-                  }
-                  audio.src = downloadURL;
-                  audio.play();
-                  return true;
-                };
-
-                var voice = 'en-US_AllisonVoice';
-
-                function validText(voice, text) {
-                  $('.error-row').css('visibility','hidden');
-                  $('.errorMsg').text('');
-                  $('.latin').hide();
-
-                  if ($.trim(text).length === 0) { // empty text
-                    showError('Please enter the text you would like to synthesize in the text window.');
-                    return false;
-                  }
-
-                  return true;
-                }
-
-                function reply(text) {
-                    console.log(text);
-                    if (validText(voice, text)) {
-                      var utteranceOptions = {
-                        text: text,
-                        voice: voice,
-                        sessionPermissions: 0
-                      };
-
-                      synthesizeRequest(utteranceOptions, audio);
-                    }
-                    return false;
-                  };
-
-
-
                     evt.preventDefault();
-                    var texttosay = "I LOVE JULIE BABY";
+                    var texttosay = "Hello Patrick";
                     console.log(texttosay)
                     var currentModel = localStorage.getItem("currentModel"),
                         currentlyDisplaying = localStorage.getItem("currentlyDisplaying");

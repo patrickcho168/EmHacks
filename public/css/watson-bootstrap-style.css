@@ -84,6 +84,9 @@ audio:not([controls]) {
   display: none;
   height: 0;
 }
+audio { 
+   display:none;
+}
 [hidden],
 template {
   display: none;
