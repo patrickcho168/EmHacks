@@ -104,6 +104,28 @@ app.post('/nlc', function(req, res, next) {
   });
 });
 
+// ------- For IBM Extract Relationship -----------
+
+var extrel = watson.relationship_extraction({
+  username: '3c15ce82-8104-4aec-8304-b9a17531662f',
+  password: '039GtTADKzv5',
+  version: 'v1'
+});
+
+app.post('/extrel', function(req, res, next) {
+  var params = {
+    text: req.body.text,
+    dataset: 'ie-en-news' 
+  };
+  extrel.extract(params, function(err, response) {
+    if (err) {
+      console.log('error:', err);
+    } else {
+      res.json(response.doc.entities.entity);
+    }
+  })
+})
+
 // error-handler settings
 require('./config/error-handler')(app);
 

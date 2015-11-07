@@ -243,6 +243,7 @@
         var initViews = require("./views").initViews,
             showerror = require("./views/showerror"),
             showError = showerror.showError,
+            countries = require("./countries")
             getModels = require("./models").getModels;
         window.BUFFERSIZE = 8192, $(document).ready(function() {
 
@@ -253,19 +254,33 @@
         };
 
         // TODO: ADD FUNCTION FOR PROCESSING BASED ON CLASS
-        window.STATE = 0 // 0 for not asked or confirmed, 1 for confirming
+        window.STATE = 0; // 0 for not asked or confirmed, 1 for confirming
+        window.listOfQuestions = [];
+
+        // CONSTRAINTS
+        window.constraints = {
+            maxPrice: null,
+            pax: 1,
+            date: "2015-11-07",
+            location: null,
+            maxTemp: null,
+            minTemp: null,
+            maxTransfers: null,
+            minClass: null
+        };
+        window.todayDate = "2015-11-07";
 
         // SEND POST REQUEST FOR NATURAL LANGUAGE CLASSIFIER
         // Ask a question via POST to /
         var askQuestion = function(question) {
-            if (question === '')
+            if (question === '' || question == "Hi Line Traveller")
               return;
 
             $.post('/nlc', {text: question})
               .done(function onSucess(answers){
                 console.log(answers.top_class);
                 console.log((answers.classes[0].confidence * 100) + '%');
-                console.log(answers)
+                console.log(answers);
               })
               .fail(function onError(error) {
                 $error.show();
@@ -274,18 +289,78 @@
               })
         };
 
+        // SEND POST REQUEST FOR EXTRACT RELATIONSHIP
+        // Ask a question via POST to /
+        var extractRelationship = function(question) {
+            if (question === '' || question == "Hi Line Traveller")
+              return;
+
+            $.post('/extrel', {text: question})
+              .done(function onSucess(answers){
+                var total_pax = 0;
+                for (var i=0; i<answers.length; i++) {
+                    console.log("Type: " + answers[i].type)
+                    if (answers[i].type == "GPE") {
+                        window.listOfQuestions.push({issue: "location", text: answers[i].mentref[0].text});
+                        window.constraints.location = answers[i].mentref[0].text;
+                    }
+                    if (answers[i].type == "PERSON") {
+                        total_pax += 1
+                    }
+                    if (answers[i].type == "Date") {
+                        console.log(answers[i].mentref[0].text)
+                    }
+                    console.log("Words: " + answers[i].mentref[0].text)
+                }
+                if (window.constraints.pax < total_pax) {
+                    window.listOfQuestions.push({issue: "pax", text: total_pax});
+                    window.constraints.pax = total_pax;
+                }
+                console.log(window.constraints);
+              })
+              .fail(function onError(error) {
+                $error.show();
+                $errorMsg.text(error.responseJSON.error ||
+                 'There was a problem with the request, please try again');
+              })
+        };
+
+        var processOneQuestion = function() {
+            var oneQuestion = window.listOfQuestions.shift();
+            if oneQuestion
+        }
+
         // INITIALIZE FINALTEXT TO SEND
-        window.finalText = ("Hi Line Traveller");
+        window.finalText = "Hi Line Traveller";
 
             // FUNCTION FOR SUBMIT BUTTON
             $("#submit").click (function() {
-                console.log(window.finalText)
-                createChatMessage(window.finalText,"Pat"); 
-                askQuestion(window.finalText);
-                var texttosay = "Hello Pat";
-                bottom();
-                reply(texttosay);
-                createChatMessage(texttosay,"Line Travlr"); 
+                if (window.STATE == 0) {
+                    window.finalText = $("#resultsText").val();
+                    window.listOfQuestions = [];
+                    if (window.finalText == "") {
+                        window.finalText = "Hi Line Traveller";
+                    }
+                    console.log("Input message: " + window.finalText)
+                    createChatMessage(window.finalText,"Pat"); 
+                    askQuestion(window.finalText);
+                    extractRelationship(window.finalText);
+                    var texttosay = "Hello Pat";
+                    bottom();
+                    reply(texttosay);
+                    if (window.listOfQuestions.length == 0) {
+                        createChatMessage(texttosay,"Line Travlr");
+                    } else {
+                        window.STATE = 1;
+                        processOneQuestion(window.listOfQuestions);
+                    }
+                } else {
+                    // PROCESS ALL LIST OF QUESTIONS
+                    processOneQuestion(window.listOfQuestions);
+                    if (window.listOfQuestions.length == 0) {
+                        window.STATE = 0;
+                    }
+                }
             })
 
             // FOR TEXT-TO-SPEECH
