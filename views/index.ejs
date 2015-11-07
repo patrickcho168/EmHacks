@@ -19,11 +19,11 @@
         <div class="container">
           <!-- IBM Watson Logo -->
           <div class="navbar-header">
-            <a class="navbar-brand no-underline" href="http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/"><span class="thin-branding"></span> Where To Go? </a>
+            <a class="navbar-brand no-underline" href="/"><span class="thin-branding"></span> Where To Go? </a>
           </div>
           <div class="float-right">
             <ul class="nav navbar-nav">
-              <li><a href="https://developer.ibm.com/watson/" class="no-underline">Restart</a></li>
+              <li><a href="/" class="no-underline">Restart</a></li>
             </ul>
           </div><!-- .navbar right-->
         </div><!-- .container -->
@@ -49,7 +49,6 @@
     <div class="container">
       <!-- Step 3 Section-->
       <!-- First column of inputs -->
-      <div class="row">
 
         <div class="row">
           <div class="col-lg-12 col-md-12 col-sm-12">
@@ -62,52 +61,10 @@
         </div><!-- row -->
 
         <!-- Tab panes -->
-        <div class="row" style="  margin: 0;">
-          <div class="col-lg-12 col-md-12 col-sm-12" style="padding: 0;">
-            <div class="well">
-              <form autocomplete="off" class="form-horizontal">
-                <div role="tabpanel">
-                  <div class="hr-tab"></div>
-                  <fieldset>
-                    <div class="row error-row">
-                      <div class="col-lg-12">
-                        <div id="errorAlert" >
-                          <span id="errorMessage"></span>
-                          <a class="pull-right" href="#" id="errorClose">&times;</a>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row notification-row">
-                      <div class="col-lg-12">
-                        <div id="notificationAlert" >
-                          <span id="notificationMessage"></span>
-                          <a class="pull-right" href="#" id="notificationClose">&times;</a>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group row tabpanel-row">
-                      <div class="col-lg-12">
-                        <div class="tab-content">
-                          <div role="tabpanel" class="tab-pane active" id="home2">
-                            <textarea readonly id="resultsText"></textarea>
-                          </div>
-                          <div role="tabpanel" class="tab-pane" id="profile2">
-                            <textarea readonly id="resultsJSON"></textarea>
-                          </div>
-                        </div>
-                      </div><!-- .col-lg-12 -->
-                    </div>
-                  </fieldset>
-                </div>
-              </form>
-            </div>
-          </div><!-- /.well -->
-        </div><!-- /.tabpanel -->
 
         <section class="section">
 
-          <div class="chatscreen">
+          <div class="chatscreen" id="chatscreen">
 
             <ul class="chats">
               <!-- The chat messages will go here -->
@@ -116,8 +73,11 @@
           </div>
 
         </section>
+        <div id="bottom"></div>
 
-        <footer>
+        
+
+<!--         <footer>
         <div class="row">
           <nav class="navbar navbar-inverse">
           <ul class="navbar-text">
@@ -132,7 +92,7 @@
 
           </nav>
         </div>
-      </footer>
+      </footer> -->
 
 
       <div class="row">
@@ -146,6 +106,30 @@
       </div><!-- row -->
 
       </div><!-- /.container -->
+
+      <footer>
+          <div class="row">
+            <nav class="navbar navbar-inverse">
+            <ul class="navbar-text">
+              <li id="recordButton" class="button-row nav-inverse-color">
+                <img id="microphoneIcon" src="images/microphone.svg" class="icon">
+              </li>
+              <li class="play-sample-1 button-row nav-inverse-color">
+                <img src="images/play.svg" class="icon">
+                <span class="nav-label">Play Sample 1</span>
+              </li>
+            </ul>
+
+            </nav>
+          </div>
+
+          <div id="chatform">
+            <div>
+              <textarea id="resultsText" placeholder="Hi Line Traveller" ></textarea>
+              <button type="submit" id="submit" name="submit" value="submit">SEND</button>
+            </div>
+          </div>
+        </footer>
 
       <!-- for file upload dialog in toolbar -->
       <input style="display:none" type="file" id="fileUploadDialog">

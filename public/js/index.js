@@ -246,6 +246,141 @@
             getModels = require("./models").getModels;
         window.BUFFERSIZE = 8192, $(document).ready(function() {
 
+        // FUNCTION FOR SCROLLING TO BOTTOM WHENEVER NEEDED
+        function bottom() {
+            // document.getElementById( 'bottom' ).scrollIntoView();
+            window.scrollTo(0,document.body.scrollHeight);
+        };
+
+        // TODO: ADD FUNCTION FOR PROCESSING BASED ON CLASS
+        window.STATE = 0 // 0 for not asked or confirmed, 1 for confirming
+
+        // SEND POST REQUEST FOR NATURAL LANGUAGE CLASSIFIER
+        // Ask a question via POST to /
+        var askQuestion = function(question) {
+            if (question === '')
+              return;
+
+            $.post('/nlc', {text: question})
+              .done(function onSucess(answers){
+                console.log(answers.top_class);
+                console.log((answers.classes[0].confidence * 100) + '%');
+                console.log(answers)
+              })
+              .fail(function onError(error) {
+                $error.show();
+                $errorMsg.text(error.responseJSON.error ||
+                 'There was a problem with the request, please try again');
+              })
+        };
+
+        // INITIALIZE FINALTEXT TO SEND
+        window.finalText = ("Hi Line Traveller");
+
+            // FUNCTION FOR SUBMIT BUTTON
+            $("#submit").click (function() {
+                console.log(window.finalText)
+                createChatMessage(window.finalText,"Pat"); 
+                askQuestion(window.finalText);
+                var texttosay = "Hello Pat";
+                bottom();
+                reply(texttosay);
+                createChatMessage(texttosay,"Line Travlr"); 
+            })
+
+            // FOR TEXT-TO-SPEECH
+            var audio = $('.audio').get(0);
+            var voice = 'en-US_AllisonVoice';
+            var messageTimeSent = $(".timesent");
+            var chats = $(".chats");
+
+            $('.audio').on('error', function (err) {
+                $.get('/api/synthesize?text=test').always(function (response) {
+                    showError(response.responseText || 'Error processing the request');
+                });
+            });
+
+            $('.audio').on('loadeddata', function () {
+                $('.result').show();
+                $('.error-row').css('visibility','hidden');
+            });
+
+            var synthesizeRequest = function(options, audio) {
+                var sessionPermissions = 0;
+                var downloadURL = '/api/synthesize' +
+                    '?voice=' + options.voice +
+                    '&text=' + encodeURIComponent(options.text) +
+                    '&X-WDC-PL-OPT-OUT=' +  sessionPermissions;
+                if (options.download) {
+                    downloadURL += '&download=true';
+                    window.location.href = downloadURL;
+                    return true;
+                }
+                audio.pause();
+                try {
+                    audio.currentTime = 0;
+                } catch(ex) {
+                    // ignore. Firefox just freaks out here for no apparent reason.
+                }
+                audio.src = downloadURL;
+                audio.play();
+                return true;
+            };
+
+            var validText = function(voice, text) {
+                $('.error-row').css('visibility','hidden');
+                $('.errorMsg').text('');
+                $('.latin').hide();
+
+                if ($.trim(text).length === 0) { // empty text
+                    showError('Please enter the text you would like to synthesize in the text window.');
+                    return false;
+                }
+                return true;
+            }
+
+            var reply = function(text) {
+                console.log(text);
+                if (validText(voice, text)) {
+                    var utteranceOptions = {
+                        text: text,
+                        voice: voice,
+                        sessionPermissions: 0
+                    };
+                    synthesizeRequest(utteranceOptions, audio);
+                }
+                return false;
+            };
+
+            // FOR CHAT MESSAGE CREATION
+            function createChatMessage(msg,user){
+
+                var who = '';
+
+                if(user=='Pat') {
+                    who = 'me';
+                }
+                else {
+                    who = 'you';
+                }
+
+                var li = $(
+                    '<li class=' + who + '>'+
+                        '<div class="image">' +
+                            '<img src=http://shackmanlab.org/wp-content/uploads/2013/07/person-placeholder.jpg />' +
+                            '<b></b>' +
+                            '<i class="timesent" data-time=2015-10-10 10:10:10></i> ' +
+                        '</div>' +
+                        '<p></p>' +
+                    '</li>');
+
+                // use the 'text' method to escape malicious user input
+                li.find('p').text(msg);
+                li.find('b').text(user);
+
+                chats.append(li);
+            };
+
             var tokenGenerator = utils.createTokenGenerator();
             tokenGenerator.getToken(function(err, token) {
                 window.onbeforeunload = function() {
@@ -507,8 +642,7 @@
                 var alternatives = msg.results[0].alternatives,
                     text = msg.results[0].alternatives[0].transcript || "";
                 window.finalText = text;
-                console.log("FINAL TEXT IS: " + window.finalText);
-                // console.log(text);
+                console.log(text);
                 if (text = text.replace(/%HESITATION\s/g, ""), text = text.replace(/(.)\1{2,}/g, ""), msg.results[0]["final"] && console.log("-> " + text), text = text.replace(/D_[^\s]+/g, ""), 0 === text.length || /^\s+$/.test(text)) return baseString;
                 console.log(msg.results[0]["final"]);
                 msg.results && msg.results[0] && msg.results[0]["final"] ? (text = text.slice(0, -1), text = text.charAt(0).toUpperCase() + text.substring(1), text = text.trim() + ". ", baseString += text, $("#resultsText").val(baseString), showMetaData(alternatives[0]), alternativePrototype.showAlternatives(alternatives)) : (text = text.charAt(0).toUpperCase() + text.substring(1), $("#resultsText").val(baseString + text))
@@ -783,100 +917,10 @@
     }],
     16: [function(require, module, exports) {
         "use strict";
+        
         var Microphone = require("../Microphone"),
             handleMicrophone = require("../handlemicrophone").handleMicrophone,
             showError = require("./showerror").showError;
-
-        var audio = $('.audio').get(0);
-        var voice = 'en-US_AllisonVoice';
-        var messageTimeSent = $(".timesent");
-        var chats = $(".chats");
-
-        $('.audio').on('error', function (err) {
-            $.get('/api/synthesize?text=test').always(function (response) {
-                showError(response.responseText || 'Error processing the request');
-            });
-        });
-
-        $('.audio').on('loadeddata', function () {
-            $('.result').show();
-            $('.error-row').css('visibility','hidden');
-        });
-
-        var synthesizeRequest = function(options, audio) {
-            var sessionPermissions = 0;
-            var downloadURL = '/api/synthesize' +
-                '?voice=' + options.voice +
-                '&text=' + encodeURIComponent(options.text) +
-                '&X-WDC-PL-OPT-OUT=' +  sessionPermissions;
-            if (options.download) {
-                downloadURL += '&download=true';
-                window.location.href = downloadURL;
-                return true;
-            }
-            audio.pause();
-            try {
-                audio.currentTime = 0;
-            } catch(ex) {
-                // ignore. Firefox just freaks out here for no apparent reason.
-            }
-            audio.src = downloadURL;
-            audio.play();
-            return true;
-        };
-
-        var validText = function(voice, text) {
-            $('.error-row').css('visibility','hidden');
-            $('.errorMsg').text('');
-            $('.latin').hide();
-
-            if ($.trim(text).length === 0) { // empty text
-                showError('Please enter the text you would like to synthesize in the text window.');
-                return false;
-            }
-            return true;
-        }
-
-        var reply = function(text) {
-            console.log(text);
-            if (validText(voice, text)) {
-                var utteranceOptions = {
-                    text: text,
-                    voice: voice,
-                    sessionPermissions: 0
-                };
-                synthesizeRequest(utteranceOptions, audio);
-            }
-            return false;
-        };
-
-        function createChatMessage(msg,user){
-
-            var who = '';
-
-            if(user=='Pat') {
-                who = 'me';
-            }
-            else {
-                who = 'you';
-            }
-
-            var li = $(
-                '<li class=' + who + '>'+
-                    '<div class="image">' +
-                        '<img src=http://shackmanlab.org/wp-content/uploads/2013/07/person-placeholder.jpg />' +
-                        '<b></b>' +
-                        '<i class="timesent" data-time=2015-10-10 10:10:10></i> ' +
-                    '</div>' +
-                    '<p></p>' +
-                '</li>');
-
-            // use the 'text' method to escape malicious user input
-            li.find('p').text(msg);
-            li.find('b').text(user);
-
-            chats.append(li);
-        };
 
         exports.initRecordButton = function(ctx) {
             var recordButton = $("#recordButton");
@@ -889,13 +933,10 @@
                     mic = new Microphone(micOptions);
                 return function(evt) {
                     evt.preventDefault();
-                    var texttosay = "Hello Patrick";
-                    console.log(window.finalText);
-                    console.log(texttosay)
                     var currentModel = localStorage.getItem("currentModel"),
                         currentlyDisplaying = localStorage.getItem("currentlyDisplaying");
                     return "sample" == currentlyDisplaying || "fileupload" == currentlyDisplaying ? void showError("Currently another file is playing, please stop the file or wait until it finishes") : (localStorage.setItem("currentlyDisplaying", "record"), 
-                        void(running ? (console.log("Stopping microphonez, sending stop action message"), createChatMessage(window.finalText,"Pat"), reply(texttosay), createChatMessage(texttosay,"Line Travlr"), recordButton.removeAttr("style"), recordButton.find("img").attr("src", "images/microphone.svg"), $.publish("hardsocketstop"), mic.stop(), running = !1, localStorage.setItem("currentlyDisplaying", "false")) : ($("#resultsText").val(""), console.log("Not running, handleMicrophone()"), handleMicrophone(token, currentModel, mic, function(err) {
+                        void(running ? (console.log("Stopping microphonez, sending stop action message"), recordButton.removeAttr("style"), recordButton.find("img").attr("src", "images/microphone.svg"), $.publish("hardsocketstop"), mic.stop(), running = !1, localStorage.setItem("currentlyDisplaying", "false")) : ($("#resultsText").val(""), console.log("Not running, handleMicrophone()"), handleMicrophone(token, currentModel, mic, function(err) {
                         if (err) {
                             var msg = "Error: " + err.message;
                             console.log(msg), showError(msg), running = !1, localStorage.setItem("currentlyDisplaying", "false")
@@ -969,5 +1010,12 @@
                 "JSON" === target && $.publish("showjson")
             })
         }
-    }, {}]
+    }, {}],
+    21: [function(require, module, exports) {
+        "use strict";
+        $("#submit").click (function() {
+            var finalText = $("#resultsText").val();
+            console.log("HELLO")
+        })
+    }, {}],
 }, {}, [5]);

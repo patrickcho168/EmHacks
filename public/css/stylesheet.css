@@ -559,11 +559,11 @@ footer {
 	bottom:0;
 	left:0;
 	width:100%;
-	padding-top: 1px;
+	padding-top: 10px;
 	background-color: white;
-	height: 60px;
+	height: 150px;
 }
-#chatform {
+#resultsText {
 	width:700px;
 	margin: 0 auto;
 	background-color: white;
@@ -641,4 +641,12 @@ footer {
 	width:700px;
 	margin: 0 auto 200px;
 	overflow:hidden;
+}
+
+form {
+    display: block;
+    margin-top: 0em;
+    width: 110px;
+	height: 60px;
+	float:right;
 }

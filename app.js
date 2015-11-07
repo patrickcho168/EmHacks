@@ -19,6 +19,7 @@
 var express      = require('express'),
     app          = express(),
     vcapServices = require('vcap_services'),
+    bluemix      = require('./config/bluemix'),
     extend       = require('util')._extend,
     watson       = require('watson-developer-cloud');
 
@@ -49,6 +50,11 @@ app.post('/api/token', function(req, res, next) {
   });
 });
 
+// Get token using your credentials
+app.post('/post', function(req, res, next) {
+  
+});
+
 // -------- For text to speech -----------
 var textToSpeech = watson.text_to_speech({
   version: 'v1',
@@ -69,6 +75,33 @@ app.get('/api/synthesize', function(req, res, next) {
   });
   console.log(res);
   transcript.pipe(res);
+});
+
+// -------- For natural language classifier ---------
+// if bluemix credentials exists, then override local
+var credentials = extend({
+  version: 'v1',
+  url : 'https://gateway.watsonplatform.net/natural-language-classifier/api',
+  username : '2176207c-7dfa-45de-90a3-712cde58914f',
+  password : 'QGC1XexqVKnU',
+}, bluemix.getServiceCreds('natural_language_classifier')); // VCAP_SERVICES
+
+// Create the service wrapper
+var nlClassifier = watson.natural_language_classifier(credentials);
+
+// Responses are json
+app.post('/nlc', function(req, res, next) {
+  var params = {
+    classifier: process.env.CLASSIFIER_ID || 'CEA87Dx5-nlc-383', // pre-trained classifier
+    text: req.body.text
+  };
+
+  nlClassifier.classify(params, function(err, results) {
+    if (err)
+      return next(err);
+    else
+      res.json(results);
+  });
 });
 
 // error-handler settings
