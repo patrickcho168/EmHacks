@@ -186,35 +186,42 @@ app.post('/dateproc', function(req, res, next) {
 
 app.post('/getcountry', function(req, res, next) {
   console.log(req.body.text);
-  var location = req.body.text;
+  var location = req.body.text.toLowerCase();
   var country_code_list = [];
   for (var i=0;i<countries.length;i++) {
-    if (countries[i]["Subregion"].indexOf(location) > -1 || countries[i]["Region"].indexOf(location) > -1 || countries[i]["Name"].indexOf(location) > -1) {
+    if (countries[i]["Subregion"].toLowerCase().indexOf(location) > -1 || countries[i]["Region"].toLowerCase().indexOf(location) > -1 || countries[i]["Name"].toLowerCase().indexOf(location) > -1) {
       country_code_list.push(countries[i]["Code"]);
     }
   }
   res.json(country_code_list)
 });
 
-// ------ For ------
+// ------ For skyscanner flight search ------
 //jul: for flight search result
-app.post("/getquotes", function(request, response) {
+app.post("/getFlight", function(request, response) {
   // var search_params = request.body;
 
   // NOTE: 
   // des formats: anywhere
   // od formats: anytime, yyyy-mm, yyyy-mm-dd
-  var country_code = req.body.country_code;
-  var date = req.body.travel_date;
+  var country_code = request.body.country_code;
+  var date = request.body.travel_date;
+  var back_date = request.body.back_date;
 
-  var webpath = 'http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo/' + country_code + '/' + date + '/anytime?apikey=ah473367287496555171637201591562&callback=cb';
+  var webpath = 'http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo/' + country_code + '/' + date + '/' + back_date +'?apikey=ah473367287496555171637201591562';
 
   // var webpath = 'http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo/sg/anytime?apikey=ah473367287496555171637201591562&callback=cb';
 
   console.log("#############webpath is: " + webpath + "############");
   httprequest(webpath, function (error, response2, body2) {
     if (!error && response.statusCode == 200) {
-      response.json(body2);
+      var jsonpData = body2;
+      var jsonFinal;
+      var startPos = jsonpData.indexOf('({');
+      var endPos = jsonpData.indexOf('})');
+      var jsonString = jsonpData.substring(startPos+1, endPos+1);
+      jsonFinal = JSON.parse(jsonString);
+      response.json(jsonFinal);
     }
   })
 });

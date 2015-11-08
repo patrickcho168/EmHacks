@@ -299,8 +299,8 @@
               })
         }
 
-        var getOneFlight = function(travel_date,country_code,callback) {
-            $.post('/getFlight', {country_code: country_code, travel_date: travel_date})
+        var getOneFlight = function(travel_date,back_date,country_code,callback) {
+            $.post('/getFlight', {country_code: country_code, travel_date: travel_date, back_date: back_date})
               .done(function onSucess(answers){
                 callback(answers);
               })
@@ -312,8 +312,8 @@
         }
 
         var getCountryBasedOnLocation = function(callback) {
-            if (window.constraints.location !== null) {
-                answers = [];
+            if (window.constraints.location === null) {
+                var answers = [];
                 callback(answers);
                 return;
             }
@@ -321,7 +321,7 @@
             $.post('/getcountry', {text: window.constraints.location})
               .done(function onSucess(answers){
                 if (!answers) {
-                    answers = [];
+                    var answers = [];
                     callback(answers);
                     return;
                 }
@@ -684,14 +684,21 @@
                 // GET FLIGHT
                     getCountryBasedOnLocation(function(listOfCountryCodes) {
                         console.log(listOfCountryCodes);
-                        var travel_date = randomDate(window.constraints.earliest_date, window.constraints.latest_date);
+                        var travel_date_dateobj = new Date(window.constraints.earliest_date.getTime() + Math.random() * (window.constraints.latest_date.getTime() - window.constraints.earliest_date.getTime()));
+                        var travel_date = DateToString(travel_date_dateobj);
                         console.log(travel_date);
+                        // Assume come home 7 days later.
+                        var back_date_dateobj = new Date();
+                        back_date_dateobj.setMonth(travel_date_dateobj.getMonth());
+                        back_date_dateobj.setYear(travel_date_dateobj.getFullYear());
+                        back_date_dateobj.setDate(travel_date_dateobj.getDate()+7);
+                        var back_date = DateToString(back_date_dateobj);
                         if (listOfCountryCodes.length > 0) {
-                            oneCountryCode = listOfCountryCodes[Math.floor(Math.random()*listOfCountryCodes.length)];
+                            var oneCountryCode = listOfCountryCodes[Math.floor(Math.random()*listOfCountryCodes.length)];
                         } else {
-                            oneCountryCode = "anywhere"
+                            var oneCountryCode = "anywhere"
                         }
-                        getOneFlight(travel_date, oneCountryCode, function(flightJson) {
+                        getOneFlight(travel_date, back_date, oneCountryCode, function(flightJson) {
                             console.log(flightJson);
                         });
                     });
@@ -700,8 +707,7 @@
             }
         }
 
-        function randomDate(start, end) {
-            var d = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        function DateToString(d) {
             var month = '' + (d.getMonth() + 1);
             var day = '' + d.getDate();
             var year = d.getFullYear();
