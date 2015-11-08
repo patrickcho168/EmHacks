@@ -6,9 +6,8 @@ var express      = require('express'),
     bluemix      = require('./config/bluemix'),
     extend       = require('util')._extend,
     countries    = require('./src/countries'),
-    watson       = require('watson-developer-cloud');
-    
-    httprequest = require('request'); //jul
+    watson       = require('watson-developer-cloud'),
+    httprequest = require('request'), //jul
     bodyParser = require('body-parser'); //jul
 
 //jul
