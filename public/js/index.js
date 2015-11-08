@@ -302,20 +302,28 @@
 
         // SUTIME FOR DATE PROCESSING
         var dateProcessing = function(time, callback) {
-            if (time === '') {
-              window.timeReference = "";
+            if (time === '' || time == "Hi Line Traveller") {
               callback();
               return
             }
-            $.post('/dateproc', {text: question})
+            $.post('/dateproc', {text: time})
               .done(function onSucess(answers){
                 if (!answers) {
-                    window.YESNO = "SayAgain";
+                    callback();
+                    return;
+                }
+                console.log("dateProcessing: " + answers);
+                var offset_string = answers.match("OFFSET P(.*)") // P must be PLUS
+                var month_string = answers.match("XXXX-(..)") // P must be PLUS
+                if (month_string !== null) {
+                    month_string = month_string[1]
+                }
+                if (offset_string === null) {
+                    callback();
+                } else {
+                    window.listOfQuestions.push({issue: "reldate", text: offset_string[1], month_string: month_string});
                     callback();
                 }
-                console.log("YESNO: " + answers.top_class);
-                window.YESNO = answers.top_class;
-                callback();
               })
               .fail(function onError(error) {
                 $error.show();
@@ -368,6 +376,7 @@
             $.post('/extrel', {text: question})
               .done(function onSucess(answers){
                 var total_pax = 0;
+                var date_to_process = "";
                 if (!answers) {
                     callback();
                     return;
@@ -376,20 +385,27 @@
                     console.log("Type: " + answers[i].type)
                     if (answers[i].type == "GPE") {
                         window.listOfQuestions.push({issue: "location", text: answers[i].mentref[0].text});
-                        console.log(window.listOfQuestions);
                     }
                     if (answers[i].type == "PERSON") {
-                        total_pax += 1
+                        total_pax += 1;
                     }
-                    if (answers[i].type == "Date") {
-                        console.log(answers[i].mentref[0].text)
-                    }
+                    console.log(answers[i].type)
+                    // if (answers[i].type == "DATE") {
+                    //     console.log("Processing Date");
+                    //     date_to_process = answers[i].mentref[0].text;
+                        
+                    // }
                     console.log("Words: " + answers[i].mentref[0].text)
                 }
                 if (window.constraints.pax < total_pax) {
                     window.listOfQuestions.push({issue: "pax", text: total_pax});
                 }
                 console.log(window.constraints);
+                // if (date_to_process != "") {
+                //     dateProcessing(date_to_process, function() {
+                //         callback();
+                //     });
+                // }
                 callback();
               })
               .fail(function onError(error) {
@@ -418,16 +434,54 @@
                 window.constraints.earliest_date = "2015-12-1"
             }
             else if (oneQuestion.issue == "colder") {
-                 window.constraints.maxTemp = 100
+                window.constraints.maxTemp = 100
             }
             else if (oneQuestion.issue == "hotter") {
                 window.constraints.minTemp = 50
             }
             else if (oneQuestion.issue == "higher class") {
-                 window.constraints.minClass = "Economy"
+                window.constraints.minClass = "Economy"
             }
             else if (oneQuestion.issue == "lower class") {
-                 window.constraints.maxClass = "First Class"
+                window.constraints.maxClass = "First Class"
+            }
+            else if (oneQuestion.issue == "reldate") {
+                var oneText = oneQuestion.text;
+                var number_string = oneText.substring(0, oneText.length - 1);
+                var date_type = oneText.slice(-1);
+                console.log(number_string);
+                console.log(date_type);
+                if (date_type == 'M') {
+                    var today = new Date();
+                    var flightDate = new Date(today);
+                    flightDate.setMonth(today.getMonth()+parseInt(number_string));
+                    flightDate.setDate(1);
+                    var flightLastDate = new Date(today);
+                    flightLastDate.setMonth(today.getMonth()+parseInt(number_string)+1);
+                    flightLastDate.setDate(0);
+                    constraints.earliest_date = flightDate; 
+                    constraints.latest_date = flightLastDate;
+                } else if (date_type == 'D') {
+                    var today = new Date();
+                    var flightDate = new Date(today);
+                    flightDate.setDate(today.getDate()+parseInt(number_string));
+                    constraints.earliest_date = flightDate; 
+                    constraints.latest_date = flightDate;
+                } else if (date_type == 'Y') {
+                    var today = new Date();
+                    var flightDate = new Date(today);
+                    var flightLastDate = new Date(today);
+                    flightDate.setDate(today.getYear()+parseInt(number_string));
+                    flightLastDate.setDate(today.getYear()+parseInt(number_string));
+                    if (oneQuestion.month_string != null) {
+                        flightLastDate.setMonth(parseInt(oneQuestion.month_string));
+                        flightLastDate.setDate(0);
+                        flightDate.setMonth(parseInt(oneQuestion.month_string)-1);
+                        flightDate.setDate(1);
+                    }
+                    constraints.earliest_date = flightDate; 
+                    constraints.latest_date = flightDate;
+                }
             }
             else {
                 var texttosay = "BUG IN CODE";
@@ -461,7 +515,7 @@
             var oneQuestion = window.listOfQuestions[0];
             console.log("HERE: " + oneQuestion.issue);
             if (oneQuestion.issue == "location") {
-                var texttosay = "Do you want to set your location to " + oneQuestion.text + "?";
+                var texttosay = "Do you want to set your destination to " + oneQuestion.text + "?";
                 createChatMessage(texttosay, window.YOU)
                 reply(texttosay);
                 bottom();
@@ -510,6 +564,54 @@
             }
             else if (oneQuestion.issue == "lower class") {
                 var texttosay = "Do you want to get a lower class seat?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "reldate") {
+                var oneText = oneQuestion.text;
+                var number_string = oneText.substring(0, oneText.length - 1);
+                var date_type = oneText.slice(-1);
+                console.log(number_string);
+                console.log(date_type);
+                if (date_type == 'M') {
+                    var today = new Date();
+                    var flightDate = new Date(today);
+                    flightDate.setMonth(today.getMonth()+parseInt(number_string));
+                    flightDate.setDate(1);
+                    var flightLastDate = new Date(today);
+                    flightLastDate.setMonth(today.getMonth()+parseInt(number_string)+1);
+                    flightLastDate.setDate(0);
+                    if (oneQuestion.month_string != null) {
+                        flightLastDate.setMonth(parseInt(oneQuestion.month_string));
+                        flightDate.setMonth(parseInt(oneQuestion.month_string));
+                    }
+                    var texttosay = "Would you like to travel between " + flightDate.toDateString() + " and " + flightLastDate.toDateString() + "?";
+                } else if (date_type == 'D') {
+                    var today = new Date();
+                    var flightDate = new Date(today);
+                    flightDate.setDate(today.getDate()+parseInt(number_string));
+                    if (oneQuestion.month_string != null) {
+                        flightLastDate.setMonth(parseInt(oneQuestion.month_string));
+                        flightDate.setMonth(parseInt(oneQuestion.month_string));
+                    }
+                    var texttosay = "Would you like to travel on " + flightDate.toDateString() + "?";
+                } else if (date_type == 'Y') {
+                    var today = new Date();
+                    var flightDate = new Date(today);
+                    var flightLastDate = new Date(today);
+                    flightDate.setDate(today.getYear()+parseInt(number_string));
+                    flightLastDate.setDate(today.getYear()+parseInt(number_string));
+                    if (oneQuestion.month_string != null) {
+                        flightLastDate.setMonth(parseInt(oneQuestion.month_string));
+                        flightLastDate.setDate(0);
+                        flightDate.setMonth(parseInt(oneQuestion.month_string)-1);
+                        flightDate.setDate(1);
+                    }
+                    var texttosay = "Would you like to travel between " + flightDate.toDateString() + " and " + flightLastDate.toDateString() + "?";
+                } else {
+                    var texttosay = "Could not interpret datetime object."
+                }
                 createChatMessage(texttosay, window.YOU)
                 reply(texttosay);
                 bottom();
@@ -564,8 +666,10 @@
                     extractRelationship(window.finalText, function() {
                         console.log("HELLO")
                         askQuestion(window.finalText, function() {
-                            console.log(window.listOfQuestions);
-                            sayInZeroState();
+                            dateProcessing(window.finalText, function() {
+                                console.log(window.listOfQuestions);
+                                sayInZeroState();
+                            })
                         });
                     });
                     

@@ -63,7 +63,6 @@ var textToSpeech = watson.text_to_speech({
 });
 
 app.get('/api/synthesize', function(req, res, next) {
-  console.log(req.query);
   var transcript = textToSpeech.synthesize(req.query);
   transcript.on('response', function(response) {
     if (req.query.download) {
@@ -73,7 +72,6 @@ app.get('/api/synthesize', function(req, res, next) {
   transcript.on('error', function(error) {
     next(error);
   });
-  console.log(res);
   transcript.pipe(res);
 });
 
@@ -149,7 +147,7 @@ var path = require('path');
 var SUtime_config = {
   'nlpPath':path.join ( __dirname,'./corenlp'), //the path of corenlp
   'version':'3.5.2', //what version of corenlp are you using
-  'annotators': ['tokenize','ssplit','pos','parse','sentiment','depparse','quote','lemma', 'ner'], //optional!
+  'annotators': ['tokenize','cleanxml','ssplit','pos','parse','sentiment','depparse','quote','lemma', 'ner'], //optional!
   'extra' : {
       'depparse.extradependencie': 'MAXIMAL'
     }
@@ -158,9 +156,33 @@ var SUtime_config = {
 var coreNLP = new NLP.StanfordNLP(SUtime_config);
 
 app.post('/dateproc', function(req, res, next) {
-  coreNLP.loadPipelineSync();
   coreNLP.process(req.body.text, function(err, result) {
-    console.log(err,JSON.stringify(result));
+    if (err) {
+      console.log('error:', err);
+    } else {
+      var token = result.document.sentences.sentence.tokens.token
+      // console.log(token);
+      if( Object.prototype.toString.call( token ) === '[object Array]' ) {
+        var finished = false
+        for (var i=0;i<token.length;i++) {
+          if (typeof token[i].NormalizedNER != 'undefined') {
+            finished = true
+            console.log(token[i].NormalizedNER)
+            res.json(token[i].NormalizedNER);
+            break;
+          }
+        }
+        if (!finished) {
+          res.json("NOTHING")
+        }
+      } else {
+        if (typeof token.NormalizedNER != 'undefined') {
+          res.json(token.NormalizedNER);
+        } else {
+          res.json("NOTHING")
+        }
+      }
+    }
   });
 });
 
