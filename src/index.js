@@ -24,6 +24,7 @@ var initViews = require('./views').initViews;
 var showerror = require('./views/showerror');
 var showError = showerror.showError;
 var getModels = require('./models').getModels;
+var countries = require('./countries');
 
 window.BUFFERSIZE = 8192;
 
