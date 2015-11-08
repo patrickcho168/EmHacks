@@ -486,13 +486,13 @@ body {
 .me {
 	clear:both;
 	float:left;
-	margin-bottom:10px;
+	margin-bottom:7px;
 }
 
 .you {
 	clear:both;
 	float:right;
-	margin-bottom:10px;
+	margin-bottom:7px;
 }
 
 .you .image{
@@ -558,12 +558,11 @@ footer {
 	bottom:0;
 	left:0;
 	width:100%;
-	padding-top: 10px;
 	background-color: white;
 	height: 150px;
 }
 #resultsText {
-	width:700px;
+	/*width:700px;*/
 	margin: 0 auto;
 	background-color: white;
 }
@@ -585,7 +584,8 @@ footer {
 }
 
 #submit {
-	width: 110px;
+	/*width: 110px;*/
+	width:100%;
 	height: 60px;
 	float:right;
 	text-align:center;
@@ -638,7 +638,7 @@ footer {
 
 .chatscreen{
 	width:700px;
-	margin: 0 auto 200px;
+	margin: 0 auto 145px;
 	overflow:hidden;
 }
 

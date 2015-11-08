@@ -6,45 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="ct" content="<%= ct %>">
     <title>Speech to Text</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
     <link href="css/watson-bootstrap-style.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <link href="css/stylesheet.css" rel="stylesheet">
+    
+    <link href="css/linetravlr.css" rel="stylesheet">
     <link rel="shortcut icon" href="images/favicon.ico" />
   </head>
   <body>
-    <!-- top nav section -->
-    <div class="navbar-wrapper">
+      <!-- top nav section -->
+      <!-- <a href="/" class="no-underline nav navbar-nav">Restart</a></li> -->
 
-      <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <!-- Service Description Bar -->
+
+      <div id="flight-suggestion" class="header fix-top" style="display:none">
         <div class="container">
-          <!-- IBM Watson Logo -->
-          <div class="navbar-header">
-            <a class="navbar-brand no-underline" href="/"><span class="thin-branding"></span> Where To Go? </a>
-          </div>
-          <div class="float-right">
-            <ul class="nav navbar-nav">
-              <li><a href="/" class="no-underline">Restart</a></li>
-            </ul>
-          </div><!-- .navbar right-->
+          <div class="col-lg-2 col-md-2 hidden-xs hidden-sm">
+            <img src="images/logo.png" class="service-icon">
+          </div><!-- .col-lg-2 -->
+
+          <div class="col-lg-10 col-md-10 col-xs-12">
+            <h1>Line Traveller</h1>
+            <p>Hassle-free flight search for people who don't know where to go!</p>
+          </div><!-- .col-lg-10 -->
         </div><!-- .container -->
-      </div><!-- .navbar -->
+      </div><!-- .header -->
 
-    </div><!-- .navbar-wrapper -->
+      <!-- <iframe class= "fix-top" src="http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo/sg/anytime?apikey=ah473367287496555171637201591562&callback=cb">
+        
+      </iframe> -->
 
-    <!-- Service Description Bar -->
-
-    <div class="header">
-      <div class="container">
-        <div class="col-lg-2 col-md-2 hidden-xs hidden-sm">
-          <img src="images/logo.png" class="service-icon">
-        </div><!-- .col-lg-2 -->
-
-        <div class="col-lg-10 col-md-10 col-xs-12">
-          <h1>Line Traveller</h1>
-          <p>Hassle-free flight search for people who don't know where to go!</p>
-        </div><!-- .col-lg-10 -->
-      </div><!-- .container -->
-    </div><!-- .header -->
     <!-- Step 1 Section-->
     <div class="container">
       <!-- Step 3 Section-->
@@ -109,14 +102,10 @@
 
       <footer>
           <div class="row">
-            <nav class="navbar navbar-inverse">
+            <nav class="navbar navbar-inverse" style="margin-bottom:0px">
             <ul class="navbar-text">
               <li id="recordButton" class="button-row nav-inverse-color">
                 <img id="microphoneIcon" src="images/microphone.svg" class="icon">
-              </li>
-              <li class="play-sample-1 button-row nav-inverse-color">
-                <img src="images/play.svg" class="icon">
-                <span class="nav-label">Play Sample 1</span>
               </li>
             </ul>
 
@@ -125,8 +114,13 @@
 
           <div id="chatform">
             <div>
-              <textarea id="resultsText" placeholder="Hi Line Traveller" ></textarea>
-              <button type="submit" id="submit" name="submit" value="submit">SEND</button>
+              <div class="footer-submitbtn">
+                <button type="submit" id="submit" name="submit" value="submit">SEND</button>
+              </div>
+              <div class="footer-textarea">
+                <textarea id="resultsText" placeholder="Hi Line Travelr" ></textarea>
+              </div>
+
             </div>
           </div>
         </footer>
@@ -138,5 +132,6 @@
       <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
       <script src="js/index.js"></script>
+      <script src="js/linetravlr.js"></script>
   </body>
 </html>

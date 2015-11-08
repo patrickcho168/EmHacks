@@ -1,0 +1,19 @@
+.fix-top{
+	position:fixed;
+	top:0px;
+	width:100%;
+}
+#my-navbar{
+	/*position:fixed;*/
+	width:100%;
+}
+.my-floatright{
+	float:right;
+}
+.footer-textarea{
+	overflow:hidden;
+}
+.footer-submitbtn{
+	width:110px;
+	float:right;
+}
