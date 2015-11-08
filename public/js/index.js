@@ -257,12 +257,26 @@
         window.listOfQuestions = [];
         window.YESNO = "SayAgain";
 
+        // Flight Details
+        window.flight = {
+            price: null,
+            originId: null,
+            destId: null,
+            carrierId: null,
+            originName: null,
+            destName: null,
+            carrierName: null,
+            stops: null,
+            date: null
+
+        };
+
         // CONSTRAINTS
         window.constraints = {
-            maxPrice: null,
+            maxPrice: 10000000,
             pax: 1,
             earliest_date: new Date(),
-            latest_date: new Date(2016,4,7),
+            latest_date: new Date(2016,0,7),
             location: null,
             maxTemp: null,
             minTemp: null,
@@ -273,6 +287,7 @@
         window.todayDate = "2015-11-07";
         window.YOU = "LT";
         window.timeReference = "";
+        window.changesToConstraints = false;
 
         // NATURAL LANGUAGE CLASSIFIER FOR YES OR NO RESPONSE
         var postYesNo = function(question, callback) {
@@ -349,7 +364,7 @@
                     return;
                 }
                 console.log("dateProcessing: " + answers);
-                var offset_string = answers.match("OFFSET P(.*)") // P must be PLUS
+                var offset_string = answers.match("OFFSET P(..)") // P must be PLUS
                 var month_string = answers.match("XXXX-(..)") // P must be PLUS
                 if (month_string !== null) {
                     month_string = month_string[1]
@@ -385,7 +400,11 @@
                     return;
                 }
                 if (answers.classes[0].confidence * 100 > 90) {
-                    window.listOfQuestions.push({issue:answers.top_class})
+                    if (["colder", "hotter", "higher class", "lower class"].indexOf(answers.classes[0].top_class) == -1) {
+                        if (window.constraints.location != null) {
+                            window.listOfQuestions.push({issue:answers.top_class})
+                        }
+                    }
                 }
                 console.log(answers.top_class);
                 console.log((answers.classes[0].confidence * 100) + '%');
@@ -461,26 +480,46 @@
                 window.constraints.pax = oneQuestion.text;
             }
             else if (oneQuestion.issue == "price") {
-                window.constraints.maxPrice = 5000;
+                if (window.flight.price != null) {
+                    window.constraints.maxPrice = window.flight.price;
+                }
             }
             else if (oneQuestion.issue == "start earlier") {
-                window.constraints.latest_date = "2015-12-31"
+                if (window.flight.date != null) {
+                    var travel_date_dateobj = window.flight.date;
+                    var date_dateobj = new Date();
+                    date_dateobj.setMonth(travel_date_dateobj.getMonth());
+                    date_dateobj.setYear(travel_date_dateobj.getFullYear());
+                    date_dateobj.setDate(travel_date_dateobj.getDate()-1);
+                    if (date_dateobj.getTime() > window.constraints.earliest_date.getTime()) {
+                        window.constraints.latest_date = date_dateobj;
+                    }
+                }
             }
             else if (oneQuestion.issue == "start later") {
-                window.constraints.earliest_date = "2015-12-1"
+                if (window.flight.date != null) {
+                    var travel_date_dateobj = window.constraints.latest_date
+                    var date_dateobj = new Date();
+                    date_dateobj.setMonth(travel_date_dateobj.getMonth());
+                    date_dateobj.setYear(travel_date_dateobj.getFullYear());
+                    date_dateobj.setDate(travel_date_dateobj.getDate()+1);
+                    if (date_dateobj.getTime() < window.constraints.latest_date.getTime()) {
+                        window.constraints.earliest_date = date_dateobj;
+                    };
+                }
             }
-            else if (oneQuestion.issue == "colder") {
-                window.constraints.maxTemp = 100
-            }
-            else if (oneQuestion.issue == "hotter") {
-                window.constraints.minTemp = 50
-            }
-            else if (oneQuestion.issue == "higher class") {
-                window.constraints.minClass = "Economy"
-            }
-            else if (oneQuestion.issue == "lower class") {
-                window.constraints.maxClass = "First Class"
-            }
+            // else if (oneQuestion.issue == "colder") {
+            //     window.constraints.maxTemp = 100
+            // }
+            // else if (oneQuestion.issue == "hotter") {
+            //     window.constraints.minTemp = 50
+            // }
+            // else if (oneQuestion.issue == "higher class") {
+            //     window.constraints.minClass = "Economy"
+            // }
+            // else if (oneQuestion.issue == "lower class") {
+            //     window.constraints.maxClass = "First Class"
+            // }
             else if (oneQuestion.issue == "reldate") {
                 var oneText = oneQuestion.text;
                 var number_string = oneText.substring(0, oneText.length - 1);
@@ -534,6 +573,7 @@
                 console.log("Final YESNO: " + window.YESNO);
                 if (window.YESNO == "yes") {
                     processConstraint(window.listOfQuestions.shift());
+                    window.changesToConstraints = true;
                 } else if (window.YESNO == "no") {
                     window.listOfQuestions.shift();
                 } else {
@@ -563,47 +603,53 @@
                 bottom();
             }
             else if (oneQuestion.issue == "price") {
-                var texttosay = "Is this flight above your budget?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
+                if (window.flight.price != null) {
+                    var texttosay = "Do you want to set your budget as " + window.flight.price + " dollars?";
+                    createChatMessage(texttosay, window.YOU)
+                    reply(texttosay);
+                    bottom();
+                }
             }
             else if (oneQuestion.issue == "start earlier") {
-                var texttosay = "Do you need an earlier departure date?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
+                if (window.flight.date != null) {
+                    var texttosay = "Do you need an earlier departure date than " + window.flight.date.toDateString() + "?";
+                    createChatMessage(texttosay, window.YOU)
+                    reply(texttosay);
+                    bottom();
+                }
             }
             else if (oneQuestion.issue == "start later") {
-                var texttosay = "Do you need a later departure date?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
+                if (window.flight.date != null) {
+                    var texttosay = "Do you need a later departure date than " + window.flight.date.toDateString() + "?";
+                    createChatMessage(texttosay, window.YOU)
+                    reply(texttosay);
+                    bottom();
+                }
             }
-            else if (oneQuestion.issue == "colder") {
-                var texttosay = "Do you want to go to a colder destination?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
-            }
-            else if (oneQuestion.issue == "hotter") {
-                var texttosay = "Do you want to go to a warmer destination?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
-            }
-            else if (oneQuestion.issue == "higher class") {
-                var texttosay = "Do you want to get a higher class seat?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
-            }
-            else if (oneQuestion.issue == "lower class") {
-                var texttosay = "Do you want to get a lower class seat?";
-                createChatMessage(texttosay, window.YOU)
-                reply(texttosay);
-                bottom();
-            }
+            // else if (oneQuestion.issue == "colder") {
+            //     var texttosay = "Do you want to go to a colder destination?";
+            //     createChatMessage(texttosay, window.YOU)
+            //     reply(texttosay);
+            //     bottom();
+            // }
+            // else if (oneQuestion.issue == "hotter") {
+            //     var texttosay = "Do you want to go to a warmer destination?";
+            //     createChatMessage(texttosay, window.YOU)
+            //     reply(texttosay);
+            //     bottom();
+            // }
+            // else if (oneQuestion.issue == "higher class") {
+            //     var texttosay = "Do you want to get a higher class seat?";
+            //     createChatMessage(texttosay, window.YOU)
+            //     reply(texttosay);
+            //     bottom();
+            // }
+            // else if (oneQuestion.issue == "lower class") {
+            //     var texttosay = "Do you want to get a lower class seat?";
+            //     createChatMessage(texttosay, window.YOU)
+            //     reply(texttosay);
+            //     bottom();
+            // }
             else if (oneQuestion.issue == "reldate") {
                 var oneText = oneQuestion.text;
                 var number_string = oneText.substring(0, oneText.length - 1);
@@ -653,7 +699,7 @@
                 bottom();
             }
             else {
-                var texttosay = "BUG IN CODE";
+                var texttosay = "Could not interpret datetime object.";
                 createChatMessage(texttosay, window.YOU)
                 reply(texttosay);
                 bottom();
@@ -666,16 +712,19 @@
                 createChatMessage(texttosay,window.YOU);
                 reply(texttosay);
                 bottom();
+                $('#resultsText').text('');
             } else {
                 window.STATE = 1;
                 processOneQuestion();
+                $('#resultsText').text('');
             }
         }
 
         var sayInOneState = function() {
             console.log("HERE: " + window.listOfQuestions.length);
+            $('#resultsText').text('');
 
-            if (window.listOfQuestions.length == 0) {
+            if (window.listOfQuestions.length == 0 && window.changesToConstraints) {
                 window.STATE = 0;
                 var texttosay = "Getting new flight based on your preferences.";
                 createChatMessage(texttosay,window.YOU);
@@ -683,25 +732,84 @@
                 bottom();
                 // GET FLIGHT
                     getCountryBasedOnLocation(function(listOfCountryCodes) {
-                        console.log(listOfCountryCodes);
-                        var travel_date_dateobj = new Date(window.constraints.earliest_date.getTime() + Math.random() * (window.constraints.latest_date.getTime() - window.constraints.earliest_date.getTime()));
-                        var travel_date = DateToString(travel_date_dateobj);
-                        console.log(travel_date);
-                        // Assume come home 7 days later.
-                        var back_date_dateobj = new Date();
-                        back_date_dateobj.setMonth(travel_date_dateobj.getMonth());
-                        back_date_dateobj.setYear(travel_date_dateobj.getFullYear());
-                        back_date_dateobj.setDate(travel_date_dateobj.getDate()+7);
-                        var back_date = DateToString(back_date_dateobj);
-                        if (listOfCountryCodes.length > 0) {
-                            var oneCountryCode = listOfCountryCodes[Math.floor(Math.random()*listOfCountryCodes.length)];
-                        } else {
-                            var oneCountryCode = "anywhere"
-                        }
-                        getOneFlight(travel_date, back_date, oneCountryCode, function(flightJson) {
-                            console.log(flightJson);
-                        });
+                        var gotNewFlight = false;
+                        var tries = 0;
+                        while (!gotNewFlight && tries < 20) {
+                            console.log(listOfCountryCodes);
+                            console.log(window.constraints.earliest_date);
+                            console.log(window.constraints.latest_date);
+                            var travel_date_dateobj = new Date(window.constraints.earliest_date.getTime() + Math.random() * (window.constraints.latest_date.getTime() - window.constraints.earliest_date.getTime()));
+                            var travel_date = DateToString(travel_date_dateobj);
+                            console.log(travel_date);
+                            // Assume come home 7 days later.
+                            var back_date_dateobj = new Date();
+                            back_date_dateobj.setMonth(travel_date_dateobj.getMonth());
+                            back_date_dateobj.setYear(travel_date_dateobj.getFullYear());
+                            back_date_dateobj.setDate(travel_date_dateobj.getDate()+7);
+                            var back_date = DateToString(back_date_dateobj);
+                            tries += 1;
+                            if (listOfCountryCodes.length > 0) {
+                                var oneCountryCode = listOfCountryCodes[Math.floor(Math.random()*listOfCountryCodes.length)];
+                            } else {
+                                var oneCountryCode = "anywhere"
+                            }
+                            getOneFlight(travel_date, back_date, oneCountryCode, function(flightJson) {
+                                window.flightJson = flightJson;
+                                console.log(flightJson);
+                                for (var i=0; i<flightJson["Quotes"].length; i++) {
+                                    var price = flightJson["Quotes"][i].MinPrice
+                                    if (price * window.constraints.pax < window.constraints.maxPrice) {
+                                        // Flight is acceptable
+                                        var originId = flightJson.Quotes[i].OutboundLeg.OriginId;
+                                        var destId = flightJson.Quotes[i].OutboundLeg.DestinationId;
+                                        console.log("Origin ID: " + originId);
+                                        console.log("Destination ID: " + destId);
+                                        var originName
+                                        var destName
+                                        for (var k=0;k<flightJson.Places.length;k++) {
+                                            var placeId = flightJson.Places[k].PlaceId;
+                                            if (originId == placeId) {
+                                                originName = flightJson.Places[k].IataCode;
+                                                console.log("Origin Name: " + originName);
+                                            } else if (destId == placeId) {
+                                                destName = flightJson.Places[k].IataCode;
+                                                console.log("Dest Name: " + destName);
+                                            }
+                                        }
+                                        var stops = flightJson.Quotes[i].OutboundLeg.CarrierIds.length - 1;
+                                        var carrierId = flightJson.Quotes[i].OutboundLeg.CarrierIds[0];
+                                        for (var j=0; j<flightJson.Carriers.length; j++) {
+                                            var checkCarrierId = flightJson.Carriers[j].CarrierId;
+                                            if (checkCarrierId == carrierId) {
+                                                var carrierName = flightJson.Carriers[j].Name;
+                                                console.log("Selected flight: " + carrierName + " stops: " + stops + originName + destName);
+                                                gotNewFlight = true;
+                                                window.flight.price = price * window.constraints.pax;
+                                                window.flight.originId = originId;
+                                                window.flight.destId = destId;
+                                                window.flight.carrierId = carrierId;
+                                                window.flight.originName = originName;
+                                                window.flight.destName = destName;
+                                                window.flight.carrierName = carrierName;
+                                                window.flight.stops = stops;
+                                                window.flight.date = travel_date_dateobj;
+                                                var flightString = "<center>Line Traveller found a flight to " + destName + " from " + originName + " at a price of $" + window.flight.price + " on " + DateToString(window.flight.date) + " by " + carrierName + " with " + stops + " stops.</center>"
+                                                $("#forinput").html(flightString)
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            });
+                        };
                     });
+            } else if (window.listOfQuestions.length == 0) {
+                window.STATE = 0;
+                var texttosay = "No change in flight suggested.";
+                createChatMessage(texttosay,window.YOU);
+                reply(texttosay);
+                bottom();
             } else {
                 processOneQuestion();
             }
@@ -731,6 +839,7 @@
                 console.log("Input message: " + window.finalText)
                 createChatMessage(window.finalText,"Barney"); 
                 if (window.STATE == 0) {
+                    window.changesToConstraints = false;
                     extractRelationship(window.finalText, function() {
                         askQuestion(window.finalText, function() {
                             dateProcessing(window.finalText, function() {

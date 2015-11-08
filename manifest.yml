@@ -9,6 +9,9 @@ applications:
   command: npm start
   memory: 512M
   services:
-  - speech-to-text-service-standard
+  - SpeechToText
+  - TextToSpeech
+  - Relationship Extraction
+  - NaturalLanguageClassifier
   env:
     NODE_ENV: production

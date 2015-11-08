@@ -11,48 +11,48 @@ module.exports = [
       "Code":"AF",
       "Name":"Afghanistan"
    },
-   {  
-      "Subregion":"Caribbean",
-      "Region":"Americas",
-      "Code":"AG",
-      "Name":"Antigua and Barbuda"
-   },
-   {  
-      "Subregion":"Caribbean",
-      "Region":"Americas",
-      "Code":"AI",
-      "Name":"Anguilla"
-   },
-   {  
-      "Subregion":"Southern Europe",
-      "Region":"Europe",
-      "Code":"AL",
-      "Name":"Albania"
-   },
-   {  
-      "Subregion":"Western Asia",
-      "Region":"Asia",
-      "Code":"AM",
-      "Name":"Armenia"
-   },
-   {  
-      "Subregion":"Middle Africa",
-      "Region":"Africa",
-      "Code":"AO",
-      "Name":"Angola"
-   },
+   // {  
+   //    "Subregion":"Caribbean",
+   //    "Region":"Americas",
+   //    "Code":"AG",
+   //    "Name":"Antigua and Barbuda"
+   // },
+   // {  
+   //    "Subregion":"Caribbean",
+   //    "Region":"Americas",
+   //    "Code":"AI",
+   //    "Name":"Anguilla"
+   // },
+   // {  
+   //    "Subregion":"Southern Europe",
+   //    "Region":"Europe",
+   //    "Code":"AL",
+   //    "Name":"Albania"
+   // },
+   // {  
+   //    "Subregion":"Western Asia",
+   //    "Region":"Asia",
+   //    "Code":"AM",
+   //    "Name":"Armenia"
+   // },
+   // {  
+   //    "Subregion":"Middle Africa",
+   //    "Region":"Africa",
+   //    "Code":"AO",
+   //    "Name":"Angola"
+   // },
    {  
       "Subregion":"South America",
       "Region":"Americas",
       "Code":"AR",
       "Name":"Argentina"
    },
-   {  
-      "Subregion":"Polynesia",
-      "Region":"Oceania",
-      "Code":"AS",
-      "Name":"American Samoa"
-   },
+   // {  
+   //    "Subregion":"Polynesia",
+   //    "Region":"Oceania",
+   //    "Code":"AS",
+   //    "Name":"American Samoa"
+   // },
    {  
       "Subregion":"Western Europe",
       "Region":"Europe",
@@ -65,30 +65,30 @@ module.exports = [
       "Code":"AU",
       "Name":"Australia"
    },
-   {  
-      "Subregion":"Caribbean",
-      "Region":"Americas",
-      "Code":"AW",
-      "Name":"Aruba"
-   },
-   {  
-      "Subregion":"Western Asia",
-      "Region":"Asia",
-      "Code":"AZ",
-      "Name":"Azerbaijan"
-   },
+   // {  
+   //    "Subregion":"Caribbean",
+   //    "Region":"Americas",
+   //    "Code":"AW",
+   //    "Name":"Aruba"
+   // },
+   // {  
+   //    "Subregion":"Western Asia",
+   //    "Region":"Asia",
+   //    "Code":"AZ",
+   //    "Name":"Azerbaijan"
+   // },
    {  
       "Subregion":"Southern Europe",
       "Region":"Europe",
       "Code":"BA",
       "Name":"Bosnia and Herzegovina"
    },
-   {  
-      "Subregion":"Caribbean",
-      "Region":"Americas",
-      "Code":"BB",
-      "Name":"Barbados"
-   },
+   // {  
+   //    "Subregion":"Caribbean",
+   //    "Region":"Americas",
+   //    "Code":"BB",
+   //    "Name":"Barbados"
+   // },
    {  
       "Subregion":"Southern Asia",
       "Region":"Asia",
@@ -101,12 +101,12 @@ module.exports = [
       "Code":"BE",
       "Name":"Belgium"
    },
-   {  
-      "Subregion":"Western Africa",
-      "Region":"Africa",
-      "Code":"BF",
-      "Name":"Burkina Faso"
-   },
+   // {  
+   //    "Subregion":"Western Africa",
+   //    "Region":"Africa",
+   //    "Code":"BF",
+   //    "Name":"Burkina Faso"
+   // },
    {  
       "Subregion":"Eastern Europe",
       "Region":"Europe",
@@ -119,24 +119,24 @@ module.exports = [
       "Code":"BH",
       "Name":"Bahrain"
    },
-   {  
-      "Subregion":"Eastern Africa",
-      "Region":"Africa",
-      "Code":"BI",
-      "Name":"Burundi"
-   },
-   {  
-      "Subregion":"Western Africa",
-      "Region":"Africa",
-      "Code":"BJ",
-      "Name":"Benin"
-   },
-   {  
-      "Subregion":"Northern America",
-      "Region":"Americas",
-      "Code":"BM",
-      "Name":"Bermuda"
-   },
+   // {  
+   //    "Subregion":"Eastern Africa",
+   //    "Region":"Africa",
+   //    "Code":"BI",
+   //    "Name":"Burundi"
+   // },
+   // {  
+   //    "Subregion":"Western Africa",
+   //    "Region":"Africa",
+   //    "Code":"BJ",
+   //    "Name":"Benin"
+   // },
+   // {  
+   //    "Subregion":"Northern America",
+   //    "Region":"Americas",
+   //    "Code":"BM",
+   //    "Name":"Bermuda"
+   // },
    {  
       "Subregion":"South-Eastern Asia",
       "Region":"Asia",
