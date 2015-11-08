@@ -6,10 +6,9 @@ var express      = require('express'),
     bluemix      = require('./config/bluemix'),
     extend       = require('util')._extend,
     countries    = require('./src/countries'),
-    watson       = require('watson-developer-cloud');
-    
-var httprequest = require('request'); //jul
-var bodyParser = require('body-parser'); //jul
+    watson       = require('watson-developer-cloud'),
+    httprequest = require('request'), //jul
+    bodyParser = require('body-parser'); //jul
 
 //jul
 app.use('/assets', express.static(__dirname + '/public'));
