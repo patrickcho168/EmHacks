@@ -12,8 +12,10 @@
     "express-secure-only": "^0.2.1",
     "extract-relationships": "0.0.7",
     "helmet": "^0.14.0",
+    "httprequest": "^0.1.5",
     "moment": "^2.10.6",
     "morgan": "^1.6.1",
+    "request": "^2.65.0",
     "underscore": "^1.8.3",
     "vcap_services": "^0.1.7",
     "watson-developer-cloud": "^0.10.6"

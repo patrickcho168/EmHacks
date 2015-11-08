@@ -297,15 +297,31 @@
                  'There was a problem with the request, please try again');
                 callback();
               })
+        }
 
+        var getOneFlight = function(travel_date,country_code,callback) {
+            $.post('/getFlight', {country_code: country_code, travel_date: travel_date})
+              .done(function onSucess(answers){
+                callback(answers);
+              })
+              .fail(function onError(error) {
+                $error.show();
+                $errorMsg.text(error.responseJSON.error ||
+                 'There was a problem with the request, please try again');
+              })
         }
 
         var getCountryBasedOnLocation = function(callback) {
+            if (window.constraints.location !== null) {
+                answers = [];
+                callback(answers);
+                return;
+            }
             console.log(window.constraints.location);
             $.post('/getcountry', {text: window.constraints.location})
               .done(function onSucess(answers){
                 if (!answers) {
-                    answers = ["CA"];
+                    answers = [];
                     callback(answers);
                     return;
                 }
@@ -316,7 +332,7 @@
                 $error.show();
                 $errorMsg.text(error.responseJSON.error ||
                  'There was a problem with the request, please try again');
-                callback(["CA"]);
+                callback([]);
               })
         }
 
@@ -666,13 +682,19 @@
                 reply(texttosay);
                 bottom();
                 // GET FLIGHT
-                if (window.constraints.location !== null) {
                     getCountryBasedOnLocation(function(listOfCountryCodes) {
                         console.log(listOfCountryCodes);
                         var travel_date = randomDate(window.constraints.earliest_date, window.constraints.latest_date);
                         console.log(travel_date);
+                        if (listOfCountryCodes.length > 0) {
+                            oneCountryCode = listOfCountryCodes[Math.floor(Math.random()*listOfCountryCodes.length)];
+                        } else {
+                            oneCountryCode = "anywhere"
+                        }
+                        getOneFlight(travel_date, oneCountryCode, function(flightJson) {
+                            console.log(flightJson);
+                        });
                     });
-                }
             } else {
                 processOneQuestion();
             }
