@@ -262,7 +262,7 @@
             maxPrice: null,
             pax: 1,
             earliest_date: new Date(),
-            latest_date: new Date(2016,10,7),
+            latest_date: new Date(2016,4,7),
             location: null,
             maxTemp: null,
             minTemp: null,
@@ -298,6 +298,26 @@
                 callback();
               })
 
+        }
+
+        var getCountryBasedOnLocation = function(callback) {
+            console.log(window.constraints.location);
+            $.post('/getcountry', {text: window.constraints.location})
+              .done(function onSucess(answers){
+                if (!answers) {
+                    answers = ["CA"];
+                    callback(answers);
+                    return;
+                }
+                console.log("Getting country code for : " + window.constraints.location);
+                callback(answers);
+              })
+              .fail(function onError(error) {
+                $error.show();
+                $errorMsg.text(error.responseJSON.error ||
+                 'There was a problem with the request, please try again');
+                callback(["CA"]);
+              })
         }
 
         // SUTIME FOR DATE PROCESSING
@@ -459,14 +479,14 @@
                     var flightLastDate = new Date(today);
                     flightLastDate.setMonth(today.getMonth()+parseInt(number_string)+1);
                     flightLastDate.setDate(0);
-                    constraints.earliest_date = flightDate; 
-                    constraints.latest_date = flightLastDate;
+                    window.constraints.earliest_date = flightDate; 
+                    window.constraints.latest_date = flightLastDate;
                 } else if (date_type == 'D') {
                     var today = new Date();
                     var flightDate = new Date(today);
                     flightDate.setDate(today.getDate()+parseInt(number_string));
-                    constraints.earliest_date = flightDate; 
-                    constraints.latest_date = flightDate;
+                    window.constraints.earliest_date = flightDate; 
+                    window.constraints.latest_date = flightDate;
                 } else if (date_type == 'Y') {
                     var today = new Date();
                     var flightDate = new Date(today);
@@ -479,8 +499,8 @@
                         flightDate.setMonth(parseInt(oneQuestion.month_string)-1);
                         flightDate.setDate(1);
                     }
-                    constraints.earliest_date = flightDate; 
-                    constraints.latest_date = flightDate;
+                    window.constraints.earliest_date = flightDate; 
+                    window.constraints.latest_date = flightDate;
                 }
             }
             else {
@@ -645,9 +665,29 @@
                 createChatMessage(texttosay,window.YOU);
                 reply(texttosay);
                 bottom();
+                // GET FLIGHT
+                if (window.constraints.location !== null) {
+                    getCountryBasedOnLocation(function(listOfCountryCodes) {
+                        console.log(listOfCountryCodes);
+                        var travel_date = randomDate(window.constraints.earliest_date, window.constraints.latest_date);
+                        console.log(travel_date);
+                    });
+                }
             } else {
                 processOneQuestion();
             }
+        }
+
+        function randomDate(start, end) {
+            var d = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+            var month = '' + (d.getMonth() + 1);
+            var day = '' + d.getDate();
+            var year = d.getFullYear();
+
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+
+            return [year, month, day].join('-');
         }
 
         // INITIALIZE FINALTEXT TO SEND
@@ -664,7 +704,6 @@
                 createChatMessage(window.finalText,"Barney"); 
                 if (window.STATE == 0) {
                     extractRelationship(window.finalText, function() {
-                        console.log("HELLO")
                         askQuestion(window.finalText, function() {
                             dateProcessing(window.finalText, function() {
                                 console.log(window.listOfQuestions);

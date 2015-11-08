@@ -21,6 +21,7 @@ var express      = require('express'),
     vcapServices = require('vcap_services'),
     bluemix      = require('./config/bluemix'),
     extend       = require('util')._extend,
+    countries    = require('./src/countries'),
     watson       = require('watson-developer-cloud');
 
 // Bootstrap application settings
@@ -184,6 +185,20 @@ app.post('/dateproc', function(req, res, next) {
       }
     }
   });
+});
+
+// --------- For country code processing ------------
+
+app.post('/getcountry', function(req, res, next) {
+  console.log(req.body.text);
+  var location = req.body.text;
+  var country_code_list = [];
+  for (var i=0;i<countries.length;i++) {
+    if (countries[i]["Subregion"].indexOf(location) > -1 || countries[i]["Region"].indexOf(location) > -1 || countries[i]["Name"].indexOf(location) > -1) {
+      country_code_list.push(countries[i]["Code"]);
+    }
+  }
+  res.json(country_code_list)
 });
 
 // error-handler settings
