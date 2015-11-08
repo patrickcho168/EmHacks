@@ -1,19 +1,3 @@
-/**
- * Copyright 2015 IBM Corp. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 'use strict';
 
 var express      = require('express'),
@@ -22,6 +6,18 @@ var express      = require('express'),
     bluemix      = require('./config/bluemix'),
     extend       = require('util')._extend,
     watson       = require('watson-developer-cloud');
+    
+    httprequest = require('request'); //jul
+    bodyParser = require('body-parser'); //jul
+
+//jul
+app.use('/assets', express.static(__dirname + '/public'));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(bodyParser.json({
+  extended: true
+}));
 
 // Bootstrap application settings
 require('./config/express')(app);
@@ -170,3 +166,21 @@ require('./config/error-handler')(app);
 var port = process.env.VCAP_APP_PORT || 3000;
 app.listen(port);
 console.log('listening at:', port);
+
+
+//jul: for flight search result
+app.post("/getquotes", function(request, response) {
+  var search_params = request.body;
+
+  // NOTE: 
+  // des formats: anywhere
+  // od formats: anytime, yyyy-mm, yyyy-mm-dd
+  var webpath = 'http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo' + '/' + search_params.des + '/' + search_params.od + '/anytime?apikey=ah473367287496555171637201591562&callback=cb';
+  console.log("#############webpath is: " + webpath + "############");
+  httprequest(webpath, function (error, response2, body2) {
+    if (!error && response.statusCode == 200) {
+      console.log(body2); // Show the HTML for the Google homepage.
+      response.render('browse_quotes',{webpath: webpath});
+    }
+  })
+});

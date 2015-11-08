@@ -21,22 +21,28 @@
 
       <!-- Service Description Bar -->
 
-      <div id="flight-suggestion" class="header fix-top" style="display:none">
+      <!-- <div id="flight-suggestion" class="header fix-top" style="display:none">
         <div class="container">
           <div class="col-lg-2 col-md-2 hidden-xs hidden-sm">
-            <img src="images/logo.png" class="service-icon">
-          </div><!-- .col-lg-2 -->
+            <img src="images/logo.png" class="service-icon"> -->
+          <!--</div>.col-lg-2 -->
 
-          <div class="col-lg-10 col-md-10 col-xs-12">
+          <!-- <div class="col-lg-10 col-md-10 col-xs-12">
             <h1>Line Traveller</h1>
-            <p>Hassle-free flight search for people who don't know where to go!</p>
-          </div><!-- .col-lg-10 -->
-        </div><!-- .container -->
-      </div><!-- .header -->
+            <p>Hassle-free flight search for people who don't know where to go!</p> -->
+          <!-- </div>.col-lg-10 -->
+        <!-- </div>.container -->
+      <!-- </div>.header -->
 
-      <!-- <iframe class= "fix-top" src="http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo/sg/anytime?apikey=ah473367287496555171637201591562&callback=cb">
-        
-      </iframe> -->
+
+      <!-- Display flight suggestion on top -->
+      <div id="loadImg">
+        <div><img src="images/loading.gif" /></div>
+      </div>
+      <div style="z-index:1000">
+        <iframe class= "fix-top" src="http://api.skyscanner.net/apiservices/xd/browsequotes/v1.0/SG/USD/en-US/sfo/sg/anytime?apikey=ah473367287496555171637201591562&callback=cb" onload="document.getElementById('loadImg').style.display='none';">
+        </iframe>
+      </div>
 
     <!-- Step 1 Section-->
     <div class="container">
@@ -101,21 +107,19 @@
       </div><!-- /.container -->
 
       <footer>
-          <div class="row">
-            <nav class="navbar navbar-inverse" style="margin-bottom:0px">
-            <ul class="navbar-text">
-              <li id="recordButton" class="button-row nav-inverse-color">
-                <img id="microphoneIcon" src="images/microphone.svg" class="icon">
-              </li>
-            </ul>
+          <div class="my-divider">
 
-            </nav>
           </div>
 
           <div id="chatform">
             <div>
-              <div class="footer-submitbtn">
-                <button type="submit" id="submit" name="submit" value="submit">SEND</button>
+              <div class="my-box" style="width:90px; float:right;">
+                <button id="recordButton" class="my-recordbtn">
+                  <img id="microphoneIcon" src="images/microphone.svg" class="icon my-center">
+                </button>
+                <div>
+                  <button type="submit" id="submit" name="submit" value="submit">SEND</button>
+                </div>
               </div>
               <div class="footer-textarea">
                 <textarea id="resultsText" placeholder="Hi Line Travelr" ></textarea>

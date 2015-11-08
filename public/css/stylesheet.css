@@ -555,7 +555,7 @@ body {
 
 footer {
 	position:fixed;
-	bottom:0;
+	bottom:-40px;
 	left:0;
 	width:100%;
 	background-color: white;
@@ -586,7 +586,7 @@ footer {
 #submit {
 	/*width: 110px;*/
 	width:100%;
-	height: 60px;
+	height: 30px;
 	float:right;
 	text-align:center;
 	background-color: #73b4d4;
