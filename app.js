@@ -92,7 +92,22 @@ var nlClassifier = watson.natural_language_classifier(credentials);
 // Responses are json
 app.post('/nlc', function(req, res, next) {
   var params = {
-    classifier: process.env.CLASSIFIER_ID || 'CEA87Dx5-nlc-383', // pre-trained classifier
+    classifier: process.env.CLASSIFIER_ID || 'CEA87Dx5-nlc-709', // pre-trained classifier
+    text: req.body.text
+  };
+
+  nlClassifier.classify(params, function(err, results) {
+    if (err)
+      return next(err);
+    else
+      res.json(results);
+  });
+});
+
+// Responses are json
+app.post('/yesno', function(req, res, next) {
+  var params = {
+    classifier: process.env.CLASSIFIER_ID || 'CEA87Dx5-nlc-711', // pre-trained classifier
     text: req.body.text
   };
 
@@ -125,6 +140,29 @@ app.post('/extrel', function(req, res, next) {
     }
   })
 })
+
+// -------- For SU Time ------------
+
+var NLP = require('./lib/index');
+var path = require('path');
+
+var SUtime_config = {
+  'nlpPath':path.join ( __dirname,'./corenlp'), //the path of corenlp
+  'version':'3.5.2', //what version of corenlp are you using
+  'annotators': ['tokenize','ssplit','pos','parse','sentiment','depparse','quote','lemma', 'ner'], //optional!
+  'extra' : {
+      'depparse.extradependencie': 'MAXIMAL'
+    }
+};
+
+var coreNLP = new NLP.StanfordNLP(SUtime_config);
+
+app.post('/dateproc', function(req, res, next) {
+  coreNLP.loadPipelineSync();
+  coreNLP.process(req.body.text, function(err, result) {
+    console.log(err,JSON.stringify(result));
+  });
+});
 
 // error-handler settings
 require('./config/error-handler')(app);

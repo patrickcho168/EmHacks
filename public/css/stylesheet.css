@@ -457,7 +457,6 @@ body {
 .image {
 	clear:both;
 	float:left;
-	height: 160px;
 	width: 80px;
 	text-align:center;
 	overflow: hidden;

@@ -243,7 +243,6 @@
         var initViews = require("./views").initViews,
             showerror = require("./views/showerror"),
             showError = showerror.showError,
-            countries = require("./countries")
             getModels = require("./models").getModels;
         window.BUFFERSIZE = 8192, $(document).ready(function() {
 
@@ -256,53 +255,128 @@
         // TODO: ADD FUNCTION FOR PROCESSING BASED ON CLASS
         window.STATE = 0; // 0 for not asked or confirmed, 1 for confirming
         window.listOfQuestions = [];
+        window.YESNO = "SayAgain";
 
         // CONSTRAINTS
         window.constraints = {
             maxPrice: null,
             pax: 1,
-            date: "2015-11-07",
+            earliest_date: new Date(),
+            latest_date: new Date(2016,10,7),
             location: null,
             maxTemp: null,
             minTemp: null,
             maxTransfers: null,
-            minClass: null
+            minClass: null,
+            maxClass: null
         };
         window.todayDate = "2015-11-07";
+        window.YOU = "LT";
+        window.timeReference = "";
 
-        // SEND POST REQUEST FOR NATURAL LANGUAGE CLASSIFIER
-        // Ask a question via POST to /
-        var askQuestion = function(question) {
-            if (question === '' || question == "Hi Line Traveller")
-              return;
-
-            $.post('/nlc', {text: question})
+        // NATURAL LANGUAGE CLASSIFIER FOR YES OR NO RESPONSE
+        var postYesNo = function(question, callback) {
+            if (question === '' || question == "Hi Line Traveller") {
+              window.YESNO = "SayAgain";
+              callback();
+              return
+            }
+            $.post('/yesno', {text: question})
               .done(function onSucess(answers){
-                console.log(answers.top_class);
-                console.log((answers.classes[0].confidence * 100) + '%');
-                console.log(answers);
+                if (!answers) {
+                    window.YESNO = "SayAgain";
+                    callback();
+                }
+                console.log("YESNO: " + answers.top_class);
+                window.YESNO = answers.top_class;
+                callback();
               })
               .fail(function onError(error) {
                 $error.show();
                 $errorMsg.text(error.responseJSON.error ||
                  'There was a problem with the request, please try again');
+                callback();
               })
+
+        }
+
+        // SUTIME FOR DATE PROCESSING
+        var dateProcessing = function(time, callback) {
+            if (time === '') {
+              window.timeReference = "";
+              callback();
+              return
+            }
+            $.post('/dateproc', {text: question})
+              .done(function onSucess(answers){
+                if (!answers) {
+                    window.YESNO = "SayAgain";
+                    callback();
+                }
+                console.log("YESNO: " + answers.top_class);
+                window.YESNO = answers.top_class;
+                callback();
+              })
+              .fail(function onError(error) {
+                $error.show();
+                $errorMsg.text(error.responseJSON.error ||
+                 'There was a problem with the request, please try again');
+                callback();
+              })
+
+        }
+
+        // SEND POST REQUEST FOR NATURAL LANGUAGE CLASSIFIER
+        // Ask a question via POST to /
+        var askQuestion = function(question, callback) {
+            if (question === '' || question == "Hi Line Traveller") {
+              callback();
+              return;
+            };
+            console.log("HELLO HERE")
+            $.post('/nlc', {text: question})
+              .done(function onSucess(answers){
+                if (!answers) {
+                    callback();
+                    return;
+                }
+                if (answers.classes[0].confidence * 100 > 90) {
+                    window.listOfQuestions.push({issue:answers.top_class})
+                }
+                console.log(answers.top_class);
+                console.log((answers.classes[0].confidence * 100) + '%');
+                console.log(answers);
+                callback();
+              })
+              .fail(function onError(error) {
+                $error.show();
+                $errorMsg.text(error.responseJSON.error ||
+                 'There was a problem with the request, please try again');
+                callback();
+              })
+
         };
 
         // SEND POST REQUEST FOR EXTRACT RELATIONSHIP
         // Ask a question via POST to /
-        var extractRelationship = function(question) {
-            if (question === '' || question == "Hi Line Traveller")
+        var extractRelationship = function(question, callback) {
+            if (question === '' || question == "Hi Line Traveller") {
+              callback();
               return;
+            };
 
             $.post('/extrel', {text: question})
               .done(function onSucess(answers){
                 var total_pax = 0;
+                if (!answers) {
+                    callback();
+                    return;
+                }
                 for (var i=0; i<answers.length; i++) {
                     console.log("Type: " + answers[i].type)
                     if (answers[i].type == "GPE") {
                         window.listOfQuestions.push({issue: "location", text: answers[i].mentref[0].text});
-                        window.constraints.location = answers[i].mentref[0].text;
+                        console.log(window.listOfQuestions);
                     }
                     if (answers[i].type == "PERSON") {
                         total_pax += 1
@@ -314,20 +388,164 @@
                 }
                 if (window.constraints.pax < total_pax) {
                     window.listOfQuestions.push({issue: "pax", text: total_pax});
-                    window.constraints.pax = total_pax;
                 }
                 console.log(window.constraints);
+                callback();
               })
               .fail(function onError(error) {
                 $error.show();
                 $errorMsg.text(error.responseJSON.error ||
                  'There was a problem with the request, please try again');
-              })
+                callback();
+              })    
         };
 
+        var processConstraint = function(oneQuestion) {
+            console.log(oneQuestion);
+            if (oneQuestion.issue == "location") {
+                window.constraints.location = oneQuestion.text;
+            }
+            else if (oneQuestion.issue == "pax") {
+                window.constraints.pax = oneQuestion.text;
+            }
+            else if (oneQuestion.issue == "price") {
+                window.constraints.maxPrice = 5000;
+            }
+            else if (oneQuestion.issue == "start earlier") {
+                window.constraints.latest_date = "2015-12-31"
+            }
+            else if (oneQuestion.issue == "start later") {
+                window.constraints.earliest_date = "2015-12-1"
+            }
+            else if (oneQuestion.issue == "colder") {
+                 window.constraints.maxTemp = 100
+            }
+            else if (oneQuestion.issue == "hotter") {
+                window.constraints.minTemp = 50
+            }
+            else if (oneQuestion.issue == "higher class") {
+                 window.constraints.minClass = "Economy"
+            }
+            else if (oneQuestion.issue == "lower class") {
+                 window.constraints.maxClass = "First Class"
+            }
+            else {
+                var texttosay = "BUG IN CODE";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+        }
+
+        var processYesNo = function(callback) {
+            window.finalText = $("#resultsText").val();
+            console.log(window.listOfQuestions)
+            postYesNo(window.finalText, function() {
+                console.log("Final YESNO: " + window.YESNO);
+                if (window.YESNO == "yes") {
+                    processConstraint(window.listOfQuestions.shift());
+                } else if (window.YESNO == "no") {
+                    window.listOfQuestions.shift();
+                } else {
+                    var texttosay = "Sorry, we did not understand your response.";
+                    createChatMessage(texttosay, window.YOU)
+                    reply(texttosay);
+                    bottom();
+                }
+                callback();
+            });
+        }
+
         var processOneQuestion = function() {
-            var oneQuestion = window.listOfQuestions.shift();
-            if oneQuestion
+            console.log(listOfQuestions);
+            var oneQuestion = window.listOfQuestions[0];
+            console.log("HERE: " + oneQuestion.issue);
+            if (oneQuestion.issue == "location") {
+                var texttosay = "Do you want to set your location to " + oneQuestion.text + "?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "pax") {
+                var texttosay = "Do you want to change the number of travellers to " + oneQuestion.text + "?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "price") {
+                var texttosay = "Is this flight above your budget?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "start earlier") {
+                var texttosay = "Do you need an earlier departure date?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "start later") {
+                var texttosay = "Do you need a later departure date?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "colder") {
+                var texttosay = "Do you want to go to a colder destination?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "hotter") {
+                var texttosay = "Do you want to go to a warmer destination?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "higher class") {
+                var texttosay = "Do you want to get a higher class seat?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else if (oneQuestion.issue == "lower class") {
+                var texttosay = "Do you want to get a lower class seat?";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+            else {
+                var texttosay = "BUG IN CODE";
+                createChatMessage(texttosay, window.YOU)
+                reply(texttosay);
+                bottom();
+            }
+        }
+
+        var sayInZeroState = function() {
+            if (window.listOfQuestions.length == 0) {
+                var texttosay = "Hello Barney";
+                createChatMessage(texttosay,window.YOU);
+                reply(texttosay);
+                bottom();
+            } else {
+                window.STATE = 1;
+                processOneQuestion();
+            }
+        }
+
+        var sayInOneState = function() {
+            console.log("HERE: " + window.listOfQuestions.length);
+
+            if (window.listOfQuestions.length == 0) {
+                window.STATE = 0;
+                var texttosay = "Getting new flight based on your preferences.";
+                createChatMessage(texttosay,window.YOU);
+                reply(texttosay);
+                bottom();
+            } else {
+                processOneQuestion();
+            }
         }
 
         // INITIALIZE FINALTEXT TO SEND
@@ -335,31 +553,27 @@
 
             // FUNCTION FOR SUBMIT BUTTON
             $("#submit").click (function() {
+                console.log("Window State: " + window.STATE);
+                window.finalText = $("#resultsText").val();
+                if (window.finalText == "") {
+                    window.finalText = "Hi Line Traveller";
+                }
+                console.log("Input message: " + window.finalText)
+                createChatMessage(window.finalText,"Barney"); 
                 if (window.STATE == 0) {
-                    window.finalText = $("#resultsText").val();
-                    window.listOfQuestions = [];
-                    if (window.finalText == "") {
-                        window.finalText = "Hi Line Traveller";
-                    }
-                    console.log("Input message: " + window.finalText)
-                    createChatMessage(window.finalText,"Pat"); 
-                    askQuestion(window.finalText);
-                    extractRelationship(window.finalText);
-                    var texttosay = "Hello Pat";
-                    bottom();
-                    reply(texttosay);
-                    if (window.listOfQuestions.length == 0) {
-                        createChatMessage(texttosay,"Line Travlr");
-                    } else {
-                        window.STATE = 1;
-                        processOneQuestion(window.listOfQuestions);
-                    }
+                    extractRelationship(window.finalText, function() {
+                        console.log("HELLO")
+                        askQuestion(window.finalText, function() {
+                            console.log(window.listOfQuestions);
+                            sayInZeroState();
+                        });
+                    });
+                    
                 } else {
                     // PROCESS ALL LIST OF QUESTIONS
-                    processOneQuestion(window.listOfQuestions);
-                    if (window.listOfQuestions.length == 0) {
-                        window.STATE = 0;
-                    }
+                    processYesNo(function() {
+                        sayInOneState();
+                    });
                 }
             })
 
@@ -432,22 +646,32 @@
 
                 var who = '';
 
-                if(user=='Pat') {
+                if(user=='Barney') {
                     who = 'me';
-                }
-                else {
-                    who = 'you';
-                }
-
-                var li = $(
+                    var li = $(
                     '<li class=' + who + '>'+
                         '<div class="image">' +
-                            '<img src=http://shackmanlab.org/wp-content/uploads/2013/07/person-placeholder.jpg />' +
+                            '<img src=https://pbs.twimg.com/profile_images/2791763282/c69b80386cbd22cc9dc838587ed51d2d.jpeg />' +
                             '<b></b>' +
                             '<i class="timesent" data-time=2015-10-10 10:10:10></i> ' +
                         '</div>' +
                         '<p></p>' +
                     '</li>');
+                }
+                else {
+                    who = 'you';
+                    var li = $(
+                    '<li class=' + who + '>'+
+                        '<div class="image">' +
+                            '<img src=http://www.clipartbest.com/cliparts/4ib/Kz7/4ibKz78KT.gif />' +
+                            '<b></b>' +
+                            '<i class="timesent" data-time=2015-10-10 10:10:10></i> ' +
+                        '</div>' +
+                        '<p></p>' +
+                    '</li>');
+                }
+
+                
 
                 // use the 'text' method to escape malicious user input
                 li.find('p').text(msg);
